@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rede Social Musical</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f6;
+      color: #222;
+      margin: 0;
+      padding: 24px;
+    }
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    header {
+      background: #1f2937;
+      color: #fff;
+      padding: 18px 22px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 1.15rem;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 12px;
+      margin-bottom: 4px;
+    }
+    select, input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+    .estrelas-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .estrela-btn {
+      width: auto;
+      padding: 4px 6px;
+      background: transparent;
+      border: none;
+      font-size: 2rem;
+      line-height: 1;
+      color: #d1d5db;
+      cursor: pointer;
+      margin-top: 0;
+      transition: transform 0.1s ease, color 0.12s ease;
+    }
+    .estrela-btn:hover {
+      background: transparent;
+      transform: scale(1.1);
+    }
+    .estrela-btn.ativa {
+      color: #f59e0b;
+    }
+    .nota-indicador {
+      margin-left: 6px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #374151;
+    }
+    button[type="submit"] {
+      margin-top: 16px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button[type="submit"]:hover {
+      background: #1d4ed8;
+    }
+    .alerta {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-weight: bold;
+    }
+    .alerta.sucesso {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .alerta.erro {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .grid-catalogo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .item-catalogo {
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px;
+      background: #fafafa;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      background: #e0e7ff;
+      color: #3730a3;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .avaliacao-item {
+      border-bottom: 1px solid #eee;
+      padding: 12px 0;
+    }
+    .avaliacao-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <strong>Rede Social Musical</strong>
+      </div>
+      <div>Usuário: <strong>@{{ usuario.nome_usuario }}</strong></div>
+    </header>
+
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+      {% if mensagens %}
+        {% for categoria, texto in mensagens %}
+          <div class="alerta {{ categoria }}">{{ texto }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card">
+      <h2>Catálogo Disponível e Médias</h2>
+      <div class="grid-catalogo">
+        {% for item in catalogo %}
+          <div class="item-catalogo">
+            <span class="badge">{{ item.tipo }}</span>
+            <p><strong>{{ item.nome }}</strong></p>
+            <p>Média: <strong>{{ "%.1f"|format(item.media) }} / 5,0</strong></p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Nova Avaliação</h2>
+      <form action="{{ url_for('avaliar') }}" method="POST">
+        <label for="id_conteudo">Música, Álbum ou Artista</label>
+        <select id="id_conteudo" name="id_conteudo" required>
+          {% for item in catalogo %}
+            <option value="{{ item.id_externo }}">{{ item.nome }} - {{ item.tipo }}</option>
+          {% endfor %}
+        </select>
+
+        <label>Nota (1 a 5 estrelas)</label>
+        <div class="estrelas-box" role="group" aria-label="Escolha de 1 a 5 estrelas">
+          <button type="button" class="estrela-btn" data-valor="1.0" aria-label="1 estrela">★</button>
+          <button type="button" class="estrela-btn" data-valor="2.0" aria-label="2 estrelas">★</button>
+          <button type="button" class="estrela-btn" data-valor="3.0" aria-label="3 estrelas">★</button>
+          <button type="button" class="estrela-btn" data-valor="4.0" aria-label="4 estrelas">★</button>
+          <button type="button" class="estrela-btn" data-valor="5.0" aria-label="5 estrelas">★</button>
+          <span id="nota-texto" class="nota-indicador">Selecione de 1 a 5 estrelas</span>
+        </div>
+        <input type="hidden" id="nota" name="nota" value="5.0" />
+
+        <label for="titulo_resenha">Título da resenha (opcional)</label>
+        <input id="titulo_resenha" name="titulo_resenha" type="text" placeholder="Ex.: Álbum muito bom!" />
+
+        <label for="texto_resenha">Resenha (opcional)</label>
+        <textarea id="texto_resenha" name="texto_resenha" rows="3" placeholder="Escreva sua opinião sobre o conteúdo..."></textarea>
+
+        <button type="submit">Enviar avaliação</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Minhas Avaliações</h2>
+      {% if avaliacoes %}
+        {% for av in avaliacoes %}
+          <div class="avaliacao-item">
+            <strong>{{ nomes_por_id.get(av.id_conteudo_musical, av.id_conteudo_musical) }}</strong>
+            ({{ av.tipo_conteudo.value }}) — Nota: <strong>{{ "%.1f"|format(av.nota) }}/5,0</strong>
+            {% if av.titulo_resenha %}
+              <div><em>{{ av.titulo_resenha }}</em></div>
+            {% endif %}
+            {% if av.texto_resenha %}
+              <p>{{ av.texto_resenha }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>Nenhuma avaliação registrada ainda.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    const botoesEstrela = document.querySelectorAll(".estrela-btn");
+    const inputNota = document.getElementById("nota");
+    const textoNota = document.getElementById("nota-texto");
+
+    let notaSelecionada = null;
+
+    function pintarEstrelas(valor, mostrarTextoNota = true) {
+      botoesEstrela.forEach((btn) => {
+        const v = parseFloat(btn.dataset.valor);
+        btn.classList.toggle("ativa", valor !== null && v <= valor);
+      });
+
+      if (valor !== null && mostrarTextoNota) {
+        textoNota.textContent = `${valor.toFixed(1).replace(".", ",")} / 5,0`;
+      } else if (notaSelecionada !== null) {
+        textoNota.textContent = `${notaSelecionada.toFixed(1).replace(".", ",")} / 5,0`;
+      } else {
+        textoNota.textContent = "Selecione de 1 a 5 estrelas";
+      }
+    }
+
+    botoesEstrela.forEach((btn) => {
+      const valor = parseFloat(btn.dataset.valor);
+
+      btn.addEventListener("mouseenter", () => pintarEstrelas(valor, true));
+      btn.addEventListener("click", () => {
+        notaSelecionada = valor;
+        inputNota.value = valor.toFixed(1);
+        pintarEstrelas(notaSelecionada, true);
+      });
+    });
+
+    document.querySelector(".estrelas-box").addEventListener("mouseleave", () => {
+      pintarEstrelas(notaSelecionada, false);
+    });
+
+    pintarEstrelas(null, false);
+  </script>
+</body>
+</html>
