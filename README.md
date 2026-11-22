@@ -9,3 +9,5 @@ No terminal, dentro da raiz do repositório:
 ```bash
 py -m pip install -r requirements.txt
 py -m unittest discover -s tests -v
+
+Para executar o codigo digite no terminal py app.py
